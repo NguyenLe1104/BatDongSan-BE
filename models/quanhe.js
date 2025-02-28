@@ -52,7 +52,8 @@ NhanVien.hasMany(LichHen, { foreignKey: "NhanVien_id" });
 User.belongsToMany(VaiTro, { through: UserVaiTro, foreignKey: "User_id" });
 VaiTro.belongsToMany(User, { through: UserVaiTro, foreignKey: "VaiTro_id" });
 
-
+UserVaiTro.belongsTo(User, { foreignKey: "User_id" });
+UserVaiTro.belongsTo(VaiTro, { foreignKey: "VaiTro_id" });
 
 module.exports = {
     User, KhachHang, NhanVien, NhaDat, VaiTro, DiaChi, LoaiNhaDat,

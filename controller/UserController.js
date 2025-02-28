@@ -1,5 +1,8 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const VaiTro = require("../models/VaiTro");
+const UserVaiTro = require("../models/User_VaiTro");
+
 exports.getAllUsers = async (req, res) => {
     try {
         const users = await User.findAll();
@@ -56,9 +59,16 @@ exports.addUser = async (req, res) => {
             DiaChi,
             TrangThai: 1,
         });
+
+        const vaitroKH = await VaiTro.findOne({ where: { MaVaiTro: "KHACHHANG" } });
+        await UserVaiTro.create({
+            User_id: newUser.id,
+            VaiTro_id: vaitroKH.id,
+        });
+
         res.status(201).json({ message: "Thêm tài khoản thành công!" });
     } catch (error) {
-        console.error("Lỗi khi thêm tài khoản:", error); // Log ra chi tiết lỗi
+        console.error("Lỗi khi thêm tài khoản:", error);
         res.status(500).json({ error: error.message });
     }
 };
