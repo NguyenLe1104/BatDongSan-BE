@@ -3,6 +3,7 @@ const express = require("express");
 const sequelize = require("./config/database");
 const userRoutes = require("./routes/UserRoutes");
 const loginRoutes = require("./routes/LoginRoutes");
+const loaiNhaDatRoutes = require("./routes/LoaiNhaDatRoutes");
 const cors = require("cors");
 
 require("./models/quanhe");
@@ -19,10 +20,10 @@ app.use(cors({
 app.use(express.json());
 
 
-app.use("/api/users", userRoutes);
+app.use("/api/admin/users", userRoutes);
 app.use("/api", loginRoutes);
 
-
+app.use("/api/loaiNhaDat", loaiNhaDatRoutes);
 const PORT = process.env.PORT;
 
 sequelize.sync({ alter: true })
