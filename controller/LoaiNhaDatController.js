@@ -52,12 +52,27 @@ exports.addLoaiNhaDat = async (req, res) => {
 exports.updateLoaiNhaDat = async (req, res) => {
     try {
         const { id } = req.params;
-        const { TenLoaiDat } = req.body;
-        const loaiNhaDat = await LoaiNhaDat.findByPk(req.param.id);
-        if (!loaiNhaDat) return res.status(404).json({ error: "Không tìm thấy loại nhà đất" });
-        if (!TenLoaiDat)
-            return res.status(400).json({ error: "Tên loại đất không được bỏ trống" });
-        await loaiNhaDat.update({ TenLoaiDat });
+        const { MaLoaiDat, TenLoaiDat } = req.body;
+
+        const loaiNhaDat = await LoaiNhaDat.findByPk(id);
+        if (!loaiNhaDat) {
+            return res.status(404).json({ error: "Không tìm thấy loại nhà đất" });
+        }
+
+        // Chỉ kiểm tra trùng MaLoaiDat nếu người dùng gửi MaLoaiDat mới
+        if (MaLoaiDat && MaLoaiDat !== loaiNhaDat.MaLoaiDat) {
+            const existsMaLoaiDat = await LoaiNhaDat.findOne({ where: { MaLoaiDat } });
+            if (existsMaLoaiDat) {
+                return res.status(400).json({ error: "Mã loại nhà đất đã tồn tại" });
+            }
+        }
+
+        // Cập nhật chỉ các trường được gửi lên (nếu có)
+        await loaiNhaDat.update({
+            MaLoaiDat: MaLoaiDat || loaiNhaDat.MaLoaiDat,
+            TenLoaiDat: TenLoaiDat || loaiNhaDat.TenLoaiDat
+        });
+
         return res.status(200).json({
             message: "Cập nhật loại nhà đất thành công",
             data: loaiNhaDat
@@ -65,7 +80,6 @@ exports.updateLoaiNhaDat = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ error: "Lỗi khi cập nhật loại nhà đất" });
     }
-
 };
 
 exports.deleteLoaiNhaDat = async (req, res) => {
