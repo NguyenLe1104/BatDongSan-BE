@@ -6,10 +6,7 @@ const loginRoutes = require("./routes/LoginRoutes");
 const cors = require("cors");
 
 require("./models/quanhe");
-
 const app = express();
-
-
 app.use(cors({
     origin: ["http://localhost:3000", "http://localhost:3001"],  // url FEFE
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -23,7 +20,7 @@ app.use("/api/users", userRoutes);
 app.use("/api", loginRoutes);
 
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000 ; 
 
 sequelize.sync({ alter: true })
     .then(() => {
@@ -35,3 +32,4 @@ sequelize.sync({ alter: true })
     .catch((error) => {
         console.error("Lỗi kết nối database:", error);
     });
+
