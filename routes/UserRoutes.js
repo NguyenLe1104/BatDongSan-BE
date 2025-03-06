@@ -11,4 +11,5 @@ router.get("/:id", verifyToken, isAdmin, userController.getUserById);
 router.put("/:id", verifyToken, isAdmin, userController.updateUser);
 
 router.post("/addUser", userController.addUser);
+
 module.exports = router;
