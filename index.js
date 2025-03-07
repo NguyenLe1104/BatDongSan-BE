@@ -4,6 +4,9 @@ const sequelize = require("./config/database");
 const userRoutes = require("./routes/UserRoutes");
 const loginRoutes = require("./routes/LoginRoutes");
 const loaiNhaDatRoutes = require("./routes/LoaiNhaDatRoutes");
+const nhaDatRoutes = require("./routes/NhaDatRoutes");
+const registerRoutes = require("./routes/RegisterRoutes");
+
 const cors = require("cors");
 
 require("./models/quanhe");
@@ -12,7 +15,7 @@ const app = express();
 
 
 app.use(cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],  // url FEFE
+    origin: ["http://localhost:3000", "http://localhost:3001"],  // url FE
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -24,6 +27,10 @@ app.use("/api/admin/users", userRoutes);
 app.use("/api", loginRoutes);
 
 app.use("/api/loaiNhaDat", loaiNhaDatRoutes);
+
+app.use("/api/nhaDat", nhaDatRoutes);
+
+app.use("/api", registerRoutes);
 const PORT = process.env.PORT;
 
 sequelize.sync({ alter: true })

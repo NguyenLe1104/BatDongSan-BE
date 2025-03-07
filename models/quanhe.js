@@ -22,9 +22,11 @@ NhanVien.belongsTo(User, { foreignKey: "User_id" });
 NhaDat.belongsTo(LoaiNhaDat, { foreignKey: "LoaiNhaDat_id" });
 LoaiNhaDat.hasMany(NhaDat, { foreignKey: "LoaiNhaDat_id" });
 
-// Quan hệ 1-n: NhaDat - DiaChi
-NhaDat.belongsTo(DiaChi, { foreignKey: "DiaChi_id" });
-DiaChi.hasMany(NhaDat, { foreignKey: "DiaChi_id" });
+// Quan hệ 1-1: Mỗi nhà đất có một địa chỉ
+// Mỗi nhà đất có một địa chỉ
+NhaDat.belongsTo(DiaChi, { foreignKey: "DiaChi_id", onDelete: "CASCADE" });
+DiaChi.hasOne(NhaDat, { foreignKey: "DiaChi_id" });
+
 // Quan hệ 1-n: ThongTinDatBan - User
 ThongTinDatBan.belongsTo(User, { foreignKey: "User_id" });
 User.hasMany(ThongTinDatBan, { foreignKey: "User_id" });
