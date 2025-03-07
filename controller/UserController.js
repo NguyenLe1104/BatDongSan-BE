@@ -77,7 +77,7 @@ exports.updateUser = async (req, res) => {
     try {
         const user = await User.findByPk(req.params.id);
         if (!user) return res.status(404).json({ error: "Không tìm thấy user" });
-        //ktra useruser
+        //ktra user
         if (req.body.username && req.body.username != user.username) {
             const existUsername = await User.findOne({ where: { username: req.body.username } });
             if (existUsername) return res.status(400).json({ error: "Username đã tồn tại" });
