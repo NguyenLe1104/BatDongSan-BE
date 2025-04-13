@@ -1,76 +1,111 @@
-require("dotenv").config();
-
+const LoaiNhaDat = require("../models/LoaiNhaDat");
 const NhaDat = require("../models/NhaDat");
-const DiaChi = require("../models/DiaChi");
+const HinhAnhNhaDat = require("../models/HinhAnhNhaDat")
+const { Op } = require("sequelize");
 exports.getAllNhaDat = async (req, res) => {
     try {
         const nhaDat = await NhaDat.findAll({
-            include: [{ model: DiaChi }]
+            include: [
+                {
+                    model: LoaiNhaDat,
+                    attributes: ['id', 'TenLoaiDat']
+                },
+                {
+                    model: HinhAnhNhaDat,
+                    as: 'hinhAnh',
+                    attributes: ['url']
+
+                }
+            ]
         });
         res.json(nhaDat);
     } catch (error) {
-        res.status(500).json({ error: "Lỗi khi lấy nhà đất" });
+        console.error("Lỗi:", error);
+        res.status(500).json({ error: "Lỗi khi lấy danh sách nhà đất" });
     }
 };
+
 
 exports.getNhaDatById = async (req, res) => {
     try {
         const { id } = req.params;
-        const nhaDat = await NhaDat.findByPk(id, {
-            include: [{ model: DiaChi }]
-        });
+        const nhaDat = await NhaDat.findByPk(id,
+            {
+                include: [
+                    {
+                        model: LoaiNhaDat,
+                        attributes: ['id', 'TenLoaiDat']
+                    },
+                    {
+                        model: HinhAnhNhaDat,
+                        as: 'hinhAnh',
+                        attributes: ['url']
+                    }
+                ]
+            }
+        );
 
         if (!nhaDat) return res.status(404).json({ error: "Không tìm thấy nhà đất" });
 
         res.json(nhaDat);
     } catch (error) {
-        console.error("Lỗi khi lấy nhà đất theo id:", error);
-        res.status(500).json({ error: "Lỗi khi lấy nhà đất theo id" });
+        console.error("Lỗi khi lấy nhà đất theo ID:", error);
+        res.status(500).json({ error: "Lỗi khi lấy nhà đất" });
     }
 };
-
 
 exports.addNhaDat = async (req, res) => {
     try {
         const {
             MaNhaDat,
             TenNhaDat,
-            LoaiNhaDat_id,
+            ThanhPho,
+            Quan,
+            Phuong,
+            Duong,
+            SoNha,
             MoTa,
             GiaBan,
             DienTich,
             Huong,
-            HinhAnh,
-            TrangThai,
-            diaChi // Nhận địa chỉ từ request
+            LoaiNhaDat_id
         } = req.body;
 
-        if (!MaNhaDat || !TenNhaDat || !LoaiNhaDat_id || !TrangThai || !diaChi) {
+        if (!MaNhaDat || !TenNhaDat) {
             return res.status(400).json({ error: "Thiếu thông tin bắt buộc" });
         }
 
-        // Kiểm tra MaNhaDat có bị trùng không
         const existingNhaDat = await NhaDat.findOne({ where: { MaNhaDat } });
         if (existingNhaDat) {
             return res.status(400).json({ error: "Mã nhà đất đã tồn tại" });
         }
 
-        // Tạo địa chỉ mới
-        const newDiaChi = await DiaChi.create(diaChi);
-
-        // Tạo nhà đất mới với địa chỉ mới
+        // Tạo nhà đất mới
         const newNhaDat = await NhaDat.create({
             MaNhaDat,
             TenNhaDat,
-            LoaiNhaDat_id,
-            DiaChi_id: newDiaChi.id, // Gán địa chỉ mới
+            ThanhPho,
+            Quan,
+            Phuong,
+            Duong,
+            SoNha,
             MoTa,
             GiaBan,
             DienTich,
             Huong,
-            HinhAnh,
-            TrangThai
+            TrangThai: 1,
+            LoaiNhaDat_id
         });
+
+        // Lưu ảnh vào bảng HinhAnhNhaDat
+        if (req.files && req.files.length > 0) {
+            const hinhAnhData = req.files.map((file) => ({
+                url: file.path,
+                idNhaDat: newNhaDat.id,
+            }));
+
+            await HinhAnhNhaDat.bulkCreate(hinhAnhData);
+        }
 
         res.status(201).json({ message: "Thêm nhà đất thành công!", data: newNhaDat });
     } catch (error) {
@@ -79,10 +114,11 @@ exports.addNhaDat = async (req, res) => {
     }
 };
 
+
 exports.updateNhaDat = async (req, res) => {
     try {
         const { id } = req.params;
-        const { MaNhaDat, diaChi, ...updateData } = req.body;
+        const { MaNhaDat, ...updateData } = req.body;
 
         const nhaDat = await NhaDat.findByPk(id);
         if (!nhaDat) return res.status(404).json({ error: "Không tìm thấy nhà đất" });
@@ -94,32 +130,28 @@ exports.updateNhaDat = async (req, res) => {
                 return res.status(400).json({ error: "Mã nhà đất đã tồn tại" });
             }
         }
+        if (req.files && req.files.length > 0) {
+            // Xoá ảnh cũ
+            await HinhAnhNhaDat.destroy({ where: { idNhaDat: id } });
 
-        // Xử lý cập nhật địa chỉ nếu có trong request
-        if (diaChi) {
-            if (nhaDat.DiaChi_id) {
-                // Nếu nhà đất đã có địa chỉ, cập nhật địa chỉ hiện tại
-                await DiaChi.update(diaChi, { where: { id: nhaDat.DiaChi_id } });
-            } else {
-                // Nếu chưa có địa chỉ, tạo mới và gán vào nhà đất
-                const newDiaChi = await DiaChi.create(diaChi);
-                updateData.DiaChi_id = newDiaChi.id;
-            }
+            const newHinhAnh = req.files.map(file => ({
+                url: file.path, // hoặc file.url tùy config cloudinary
+                idNhaDat: id,
+            }));
+
+            await HinhAnhNhaDat.bulkCreate(newHinhAnh);
         }
 
-        // Cập nhật thông tin nhà đất
+
+
         await nhaDat.update(updateData);
 
-        // Lấy dữ liệu mới sau khi cập nhật
-        const updatedNhaDat = await NhaDat.findByPk(id, { include: DiaChi });
-
-        res.status(200).json({ message: "Cập nhật thành công!", data: updatedNhaDat });
+        res.status(200).json({ message: "Cập nhật thành công!", data: nhaDat });
     } catch (error) {
         console.error("Lỗi khi cập nhật nhà đất:", error);
         return res.status(500).json({ error: "Lỗi máy chủ" });
     }
 };
-
 
 exports.deleteNhaDat = async (req, res) => {
     try {
@@ -127,21 +159,82 @@ exports.deleteNhaDat = async (req, res) => {
         const nhaDat = await NhaDat.findByPk(id);
         if (!nhaDat) return res.status(404).json({ error: "Không tìm thấy nhà đất" });
 
-        // Tìm địa chỉ liên quan trước khi xóa nhà đất
-        const diaChi = await DiaChi.findByPk(nhaDat.DiaChi_id);
-
-        // Xóa nhà đất
         await nhaDat.destroy();
 
-        // Nếu có địa chỉ, xóa luôn địa chỉ
-        if (diaChi) {
-            await diaChi.destroy();
-        }
-
-        return res.status(200).json({ message: "Xóa nhà đất và địa chỉ thành công" });
+        return res.status(200).json({ message: "Xóa nhà đất thành công" });
     } catch (error) {
         console.error("Lỗi khi xóa nhà đất:", error);
         return res.status(500).json({ error: "Lỗi máy chủ" });
     }
 };
 
+
+exports.searchNhaDat = async (req, res) => {
+    try {
+        const {
+            TenNhaDat,
+            TenLoaiDat,
+            ThanhPho,
+            Quan,
+            Phuong,
+            Duong,
+            GiaMin,
+            GiaMax,
+            DienTichMin,
+            DienTichMax
+        } = req.query;
+
+        let whereClause = {};
+
+        // Kiểm tra giá trị trước khi thêm vào điều kiện tìm kiếm
+        if (TenNhaDat) whereClause.TenNhaDat = { [Op.like]: `%${TenNhaDat}%` };
+        if (ThanhPho) whereClause.ThanhPho = ThanhPho;
+        if (Quan) whereClause.Quan = Quan;
+        if (Phuong) whereClause.Phuong = Phuong;
+        if (Duong) whereClause.Duong = Duong;
+
+        // Xử lý khoảng giá
+        const giaMinNum = parseFloat(GiaMin);
+        const giaMaxNum = parseFloat(GiaMax);
+        if (!isNaN(giaMinNum) || !isNaN(giaMaxNum)) {
+            whereClause.GiaBan = {};
+            if (!isNaN(giaMinNum)) whereClause.GiaBan[Op.gte] = giaMinNum;
+            if (!isNaN(giaMaxNum)) whereClause.GiaBan[Op.lte] = giaMaxNum;
+        }
+
+        // Xử lý khoảng diện tích
+        const dienTichMinNum = parseFloat(DienTichMin);
+        const dienTichMaxNum = parseFloat(DienTichMax);
+        if (!isNaN(dienTichMinNum) || !isNaN(dienTichMaxNum)) {
+            whereClause.DienTich = {};
+            if (!isNaN(dienTichMinNum)) whereClause.DienTich[Op.gte] = dienTichMinNum;
+            if (!isNaN(dienTichMaxNum)) whereClause.DienTich[Op.lte] = dienTichMaxNum;
+        }
+
+        // Tìm kiếm LoaiNhaDat
+        let loaiNhaDatClause = {};
+        if (TenLoaiDat) loaiNhaDatClause.TenLoaiDat = { [Op.like]: `%${TenLoaiDat}%` };
+
+        const nhaDat = await NhaDat.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: LoaiNhaDat,
+                    attributes: ["id", "TenLoaiDat"],
+                    where: Object.keys(loaiNhaDatClause).length ? loaiNhaDatClause : undefined
+                },
+                {
+                    model: HinhAnhNhaDat,
+                    as: 'hinhAnh',
+                    attributes: ['url']
+
+                }
+            ]
+        });
+
+        res.json(nhaDat);
+    } catch (error) {
+        console.error("Lỗi khi tìm kiếm nhà đất:", error);
+        res.status(500).json({ error: "Lỗi khi tìm kiếm nhà đất" });
+    }
+};

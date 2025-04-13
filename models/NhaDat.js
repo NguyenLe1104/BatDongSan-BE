@@ -15,14 +15,13 @@ const NhaDat = sequelize.define("NhaDat", {
         type: DataTypes.STRING(255),
         allowNull: false,
     },
-    LoaiNhaDat_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    DiaChi_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
+    // Gộp địa chỉ vào chung model
+    ThanhPho: DataTypes.STRING,
+    Quan: DataTypes.STRING,
+    Phuong: DataTypes.STRING,
+    Duong: DataTypes.STRING,
+    SoNha: DataTypes.STRING,
+
     MoTa: {
         type: DataTypes.TEXT,
     },

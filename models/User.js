@@ -28,6 +28,7 @@ const User = sequelize.define("User", {
         type: DataTypes.STRING,
 
     },
+
     TrangThai: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -38,7 +39,8 @@ const User = sequelize.define("User", {
     indexes: [
         { unique: true, fields: ["username"] },
         { unique: true, fields: ["SoDienThoai"] },
-        { unique: true, fields: ["email"] },
+        { unique: true, fields: ["email"] }
+
     ],
 });
 
