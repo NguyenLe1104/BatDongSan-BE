@@ -4,6 +4,7 @@ const nhaDatController = require("../controller/NhaDatController");
 const { uploadMultiple } = require("../middlewares/uploadCloudinary");
 router.get("/search", nhaDatController.searchNhaDat);
 router.get("/", nhaDatController.getAllNhaDat);
+
 router.get("/:id", nhaDatController.getNhaDatById);
 router.post("/addNhaDat", uploadMultiple, nhaDatController.addNhaDat);
 router.put("/:id", uploadMultiple, nhaDatController.updateNhaDat);

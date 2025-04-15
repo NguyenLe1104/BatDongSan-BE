@@ -1,7 +1,9 @@
 const LoaiNhaDat = require("../models/LoaiNhaDat");
 const NhaDat = require("../models/NhaDat");
 const HinhAnhNhaDat = require("../models/HinhAnhNhaDat")
+
 const { Op } = require("sequelize");
+const sequelize = require("../config/database"); 
 exports.getAllNhaDat = async (req, res) => {
     try {
         const nhaDat = await NhaDat.findAll({
@@ -172,6 +174,7 @@ exports.deleteNhaDat = async (req, res) => {
 exports.searchNhaDat = async (req, res) => {
     try {
         const {
+            q, // Tham số tìm kiếm text
             TenNhaDat,
             TenLoaiDat,
             ThanhPho,
@@ -186,29 +189,54 @@ exports.searchNhaDat = async (req, res) => {
 
         let whereClause = {};
 
-        // Kiểm tra giá trị trước khi thêm vào điều kiện tìm kiếm
-        if (TenNhaDat) whereClause.TenNhaDat = { [Op.like]: `%${TenNhaDat}%` };
-        if (ThanhPho) whereClause.ThanhPho = ThanhPho;
-        if (Quan) whereClause.Quan = Quan;
-        if (Phuong) whereClause.Phuong = Phuong;
-        if (Duong) whereClause.Duong = Duong;
+        // Xử lý tìm kiếm bằng text (q)
+        if (q) {
+            const searchTerm = q.trim().toLowerCase();
+            whereClause = {
+                [Op.or]: [
+                    sequelize.where(sequelize.fn('LOWER', sequelize.col('TenNhaDat')), {
+                        [Op.like]: `%${searchTerm}%`
+                    }),
+                    sequelize.where(sequelize.fn('LOWER', sequelize.col('MoTa')), {
+                        [Op.like]: `%${searchTerm}%`
+                    }),
+                    { ThanhPho: { [Op.like]: `%${searchTerm}%` } },
+                    { Quan: { [Op.like]: `%${searchTerm}%` } },
+                    { Phuong: { [Op.like]: `%${searchTerm}%` } },
+                    { Duong: { [Op.like]: `%${searchTerm}%` } }
+                ]
+            };
+        } else {
+            // Tìm kiếm theo điều kiện cụ thể
+            if (TenNhaDat) whereClause.TenNhaDat = { [Op.like]: `%${TenNhaDat}%` };
+            if (ThanhPho) whereClause.ThanhPho = ThanhPho;
+            if (Quan) whereClause.Quan = Quan;
+            if (Phuong) whereClause.Phuong = Phuong;
+            if (Duong) whereClause.Duong = Duong;
 
-        // Xử lý khoảng giá
-        const giaMinNum = parseFloat(GiaMin);
-        const giaMaxNum = parseFloat(GiaMax);
-        if (!isNaN(giaMinNum) || !isNaN(giaMaxNum)) {
-            whereClause.GiaBan = {};
-            if (!isNaN(giaMinNum)) whereClause.GiaBan[Op.gte] = giaMinNum;
-            if (!isNaN(giaMaxNum)) whereClause.GiaBan[Op.lte] = giaMaxNum;
-        }
+            // Xử lý khoảng giá
+            const giaConditions = {};
+            const giaMinNum = parseFloat(GiaMin);
+            const giaMaxNum = parseFloat(GiaMax);
+            
+            if (!isNaN(giaMinNum)) giaConditions[Op.gte] = giaMinNum;
+            if (!isNaN(giaMaxNum)) giaConditions[Op.lte] = giaMaxNum;
+            
+            if (Object.keys(giaConditions).length > 0) {
+                whereClause.GiaBan = giaConditions;
+            }
 
-        // Xử lý khoảng diện tích
-        const dienTichMinNum = parseFloat(DienTichMin);
-        const dienTichMaxNum = parseFloat(DienTichMax);
-        if (!isNaN(dienTichMinNum) || !isNaN(dienTichMaxNum)) {
-            whereClause.DienTich = {};
-            if (!isNaN(dienTichMinNum)) whereClause.DienTich[Op.gte] = dienTichMinNum;
-            if (!isNaN(dienTichMaxNum)) whereClause.DienTich[Op.lte] = dienTichMaxNum;
+            // Xử lý khoảng diện tích
+            const dienTichConditions = {};
+            const dienTichMinNum = parseFloat(DienTichMin);
+            const dienTichMaxNum = parseFloat(DienTichMax);
+            
+            if (!isNaN(dienTichMinNum)) dienTichConditions[Op.gte] = dienTichMinNum;
+            if (!isNaN(dienTichMaxNum)) dienTichConditions[Op.lte] = dienTichMaxNum;
+            
+            if (Object.keys(dienTichConditions).length > 0) {
+                whereClause.DienTich = dienTichConditions;
+            }
         }
 
         // Tìm kiếm LoaiNhaDat
@@ -227,10 +255,17 @@ exports.searchNhaDat = async (req, res) => {
                     model: HinhAnhNhaDat,
                     as: 'hinhAnh',
                     attributes: ['url']
-
                 }
             ]
         });
+
+        if (nhaDat.length === 0) {
+            return res.status(200).json({ 
+                message: q ? "Không tìm thấy nhà đất phù hợp với từ khóa tìm kiếm." 
+                          : "Không tìm thấy nhà đất phù hợp với điều kiện tìm kiếm.",
+                data: [] 
+            });
+        }
 
         res.json(nhaDat);
     } catch (error) {
