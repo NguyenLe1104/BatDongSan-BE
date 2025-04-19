@@ -10,19 +10,6 @@ const KhachHang = sequelize.define("KhachHang", {
     MaKH: {
         type: DataTypes.STRING(5),
     },
-    HoTen: {
-        type: DataTypes.STRING,
-    },
-    SoDienThoai: {
-        type: DataTypes.STRING(15),
-    },
-    email: {
-        type: DataTypes.STRING,
-    },
-    DiaChi: {
-        type: DataTypes.STRING,
-
-    },
     User_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -31,9 +18,7 @@ const KhachHang = sequelize.define("KhachHang", {
     tableName: "KhachHang",
     timestamps: true,
     indexes: [
-        { unique: true, fields: ["MaKH"] },
-        { unique: true, fields: ["SoDienThoai"] },
-        { unique: true, fields: ["email"] }
+        { unique: true, fields: ["MaKH"] }
     ]
 });
 

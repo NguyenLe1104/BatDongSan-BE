@@ -6,7 +6,8 @@ const loginRoutes = require("./routes/LoginRoutes");
 const loaiNhaDatRoutes = require("./routes/LoaiNhaDatRoutes");
 const nhaDatRoutes = require("./routes/NhaDatRoutes");
 const registerRoutes = require("./routes/RegisterRoutes");
-
+const khachHangRoutes = require("./routes/KhachHangRoutes");
+const nhanVienRoutes = require("./routes/NhanVienRoutes");
 const cors = require("cors");
 
 require("./models/quanhe");
@@ -31,6 +32,12 @@ app.use("/api/loaiNhaDat", loaiNhaDatRoutes);
 app.use("/api/nhaDat", nhaDatRoutes);
 
 app.use("/api", registerRoutes);
+
+
+app.use("/api/khachHang", khachHangRoutes);
+
+app.use("/api/nhanVien", nhanVienRoutes);
+
 const PORT = process.env.PORT;
 
 sequelize.sync({ alter: true })

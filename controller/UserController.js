@@ -99,6 +99,8 @@ exports.updateUser = async (req, res) => {
         await User.update(req.body, { where: { id: req.params.id } });
         res.status(200).json({ message: "Cập nhật thành công!" });
     } catch (error) {
+        console.error("Lỗi khi cập nhật tài khoản:", error);
+
         res.status(500).json({ error: "Lỗi khi cập nhật user" });
     }
 };
