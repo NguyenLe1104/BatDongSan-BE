@@ -8,7 +8,7 @@ const User = sequelize.define("User", {
         primaryKey: true,
     },
     username: {
-        type: DataTypes.STRING(255), // Thêm độ dài rõ ràng
+        type: DataTypes.STRING(255),
         allowNull: false,
     },
     password: {

@@ -1,7 +1,9 @@
 const LoaiNhaDat = require("../models/LoaiNhaDat");
 const NhaDat = require("../models/NhaDat");
 const HinhAnhNhaDat = require("../models/HinhAnhNhaDat")
-const { Op } = require("sequelize");
+const { Op, fn, col, where } = require("sequelize");
+const sequelize = require("../config/database");
+
 exports.getAllNhaDat = async (req, res) => {
     try {
         const nhaDat = await NhaDat.findAll({
@@ -168,10 +170,10 @@ exports.deleteNhaDat = async (req, res) => {
     }
 };
 
-
 exports.searchNhaDat = async (req, res) => {
     try {
         const {
+            searchText,
             TenNhaDat,
             TenLoaiDat,
             ThanhPho,
@@ -186,14 +188,27 @@ exports.searchNhaDat = async (req, res) => {
 
         let whereClause = {};
 
-        // Kiểm tra giá trị trước khi thêm vào điều kiện tìm kiếm
+        // Tìm kiếm theo searchText (LOWER cho case-insensitive)
+        if (searchText) {
+            const term = searchText.trim().toLowerCase();
+            whereClause[Op.or] = [
+                where(fn("LOWER", col("TenNhaDat")), { [Op.like]: `%${term}%` }),
+                where(fn("LOWER", col("MoTa")), { [Op.like]: `%${term}%` }),
+                where(fn("LOWER", col("ThanhPho")), { [Op.like]: `%${term}%` }),
+                where(fn("LOWER", col("Quan")), { [Op.like]: `%${term}%` }),
+                where(fn("LOWER", col("Phuong")), { [Op.like]: `%${term}%` }),
+                where(fn("LOWER", col("Duong")), { [Op.like]: `%${term}%` })
+            ];
+        }
+
+        // Các điều kiện lọc khác
         if (TenNhaDat) whereClause.TenNhaDat = { [Op.like]: `%${TenNhaDat}%` };
         if (ThanhPho) whereClause.ThanhPho = ThanhPho;
         if (Quan) whereClause.Quan = Quan;
         if (Phuong) whereClause.Phuong = Phuong;
         if (Duong) whereClause.Duong = Duong;
 
-        // Xử lý khoảng giá
+        // Giá
         const giaMinNum = parseFloat(GiaMin);
         const giaMaxNum = parseFloat(GiaMax);
         if (!isNaN(giaMinNum) || !isNaN(giaMaxNum)) {
@@ -202,7 +217,7 @@ exports.searchNhaDat = async (req, res) => {
             if (!isNaN(giaMaxNum)) whereClause.GiaBan[Op.lte] = giaMaxNum;
         }
 
-        // Xử lý khoảng diện tích
+        // Diện tích
         const dienTichMinNum = parseFloat(DienTichMin);
         const dienTichMaxNum = parseFloat(DienTichMax);
         if (!isNaN(dienTichMinNum) || !isNaN(dienTichMaxNum)) {
@@ -211,9 +226,11 @@ exports.searchNhaDat = async (req, res) => {
             if (!isNaN(dienTichMaxNum)) whereClause.DienTich[Op.lte] = dienTichMaxNum;
         }
 
-        // Tìm kiếm LoaiNhaDat
-        let loaiNhaDatClause = {};
-        if (TenLoaiDat) loaiNhaDatClause.TenLoaiDat = { [Op.like]: `%${TenLoaiDat}%` };
+        // Loại nhà đất
+        const loaiNhaDatClause = {};
+        if (TenLoaiDat) {
+            loaiNhaDatClause.TenLoaiDat = { [Op.like]: `%${TenLoaiDat}%` };
+        }
 
         const nhaDat = await NhaDat.findAll({
             where: whereClause,
@@ -221,20 +238,30 @@ exports.searchNhaDat = async (req, res) => {
                 {
                     model: LoaiNhaDat,
                     attributes: ["id", "TenLoaiDat"],
-                    where: Object.keys(loaiNhaDatClause).length ? loaiNhaDatClause : undefined
+                    where: Object.keys(loaiNhaDatClause).length > 0 ? loaiNhaDatClause : undefined
                 },
                 {
                     model: HinhAnhNhaDat,
                     as: 'hinhAnh',
                     attributes: ['url']
-
                 }
             ]
         });
 
-        res.json(nhaDat);
+        if (nhaDat.length === 0) {
+            return res.status(200).json({
+                message: "Không tìm thấy nhà đất phù hợp.",
+                data: []
+            });
+        }
+
+        return res.status(200).json({
+            message: "Tìm kiếm thành công.",
+            data: nhaDat
+        });
+
     } catch (error) {
         console.error("Lỗi khi tìm kiếm nhà đất:", error);
-        res.status(500).json({ error: "Lỗi khi tìm kiếm nhà đất" });
+        return res.status(500).json({ error: "Lỗi khi tìm kiếm nhà đất" });
     }
 };
