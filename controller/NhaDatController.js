@@ -3,23 +3,11 @@ const NhaDat = require("../models/NhaDat");
 const HinhAnhNhaDat = require("../models/HinhAnhNhaDat")
 const { Op, fn, col, where } = require("sequelize");
 const sequelize = require("../config/database");
-
+const { cloudinary } = require('../config/cloudinary');
+const { validateFieldsNoSpecialChars } = require("../utils/validators")
 exports.getAllNhaDat = async (req, res) => {
     try {
-        const nhaDat = await NhaDat.findAll({
-            include: [
-                {
-                    model: LoaiNhaDat,
-                    attributes: ['id', 'TenLoaiDat']
-                },
-                {
-                    model: HinhAnhNhaDat,
-                    as: 'hinhAnh',
-                    attributes: ['url']
-
-                }
-            ]
-        });
+        const nhaDat = res.paginateResult;
         res.json(nhaDat);
     } catch (error) {
         console.error("Lỗi:", error);
@@ -76,10 +64,13 @@ exports.addNhaDat = async (req, res) => {
         if (!MaNhaDat || !TenNhaDat) {
             return res.status(400).json({ error: "Thiếu thông tin bắt buộc" });
         }
-
+        const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich];
+        if (validateFieldsNoSpecialChars(fieldsToCheck)) {
+            return res.status(400).json({ error: "Thông tin có chứa ký tự đặc biệt. Vui lòng thử lại!" });
+        }
         const existingNhaDat = await NhaDat.findOne({ where: { MaNhaDat } });
         if (existingNhaDat) {
-            return res.status(400).json({ error: "Mã nhà đất đã tồn tại" });
+            return res.status(400).json({ message: "Mã nhà đất đã tồn tại" });
         }
 
         // Tạo nhà đất mới
@@ -125,6 +116,10 @@ exports.updateNhaDat = async (req, res) => {
         const nhaDat = await NhaDat.findByPk(id);
         if (!nhaDat) return res.status(404).json({ error: "Không tìm thấy nhà đất" });
 
+        const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich];
+        if (validateFieldsNoSpecialChars(fieldsToCheck)) {
+            return res.status(400).json({ error: "Thông tin có chứa ký tự đặc biệt. Vui lòng thử lại!" });
+        }
         // Kiểm tra nếu MaNhaDat mới bị trùng với một nhà đất khác
         if (MaNhaDat) {
             const existingNhaDat = await NhaDat.findOne({ where: { MaNhaDat } });
@@ -158,9 +153,18 @@ exports.updateNhaDat = async (req, res) => {
 exports.deleteNhaDat = async (req, res) => {
     try {
         const { id } = req.params;
-        const nhaDat = await NhaDat.findByPk(id);
+        const nhaDat = await NhaDat.findByPk(id, {
+            include: {
+                model: HinhAnhNhaDat,
+                as: "hinhAnh"
+            }
+        });
         if (!nhaDat) return res.status(404).json({ error: "Không tìm thấy nhà đất" });
-
+        const hinhAnhList = nhaDat.hinhAnh;
+        for (let hinhAnh of hinhAnhList) {
+            const publicId = hinhAnh.url.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(publicId);
+        }
         await nhaDat.destroy();
 
         return res.status(200).json({ message: "Xóa nhà đất thành công" });

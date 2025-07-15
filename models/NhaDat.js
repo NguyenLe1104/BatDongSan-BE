@@ -16,11 +16,11 @@ const NhaDat = sequelize.define("NhaDat", {
         allowNull: false,
     },
     // Gộp địa chỉ vào chung model
-    ThanhPho: DataTypes.STRING,
-    Quan: DataTypes.STRING,
-    Phuong: DataTypes.STRING,
-    Duong: DataTypes.STRING,
-    SoNha: DataTypes.STRING,
+    ThanhPho: DataTypes.STRING(30),
+    Quan: DataTypes.STRING(30),
+    Phuong: DataTypes.STRING(30),
+    Duong: DataTypes.STRING(30),
+    SoNha: DataTypes.STRING(6),
 
     MoTa: {
         type: DataTypes.TEXT,
