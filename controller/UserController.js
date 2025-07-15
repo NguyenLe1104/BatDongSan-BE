@@ -104,3 +104,16 @@ exports.updateUser = async (req, res) => {
         res.status(500).json({ error: "Lỗi khi cập nhật user" });
     }
 };
+
+exports.getProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findByPk(userId);
+        if (!user)
+            return res.status(404).json({ error: "Không tìm thấy người dùng" });
+        res.json(user);
+    } catch (error) {
+        console.error("Lỗi khi lấy thông tin người dùng:", error);
+        res.status(500).json({ error: error.message });
+    }
+}

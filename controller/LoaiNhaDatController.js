@@ -1,10 +1,10 @@
 require("dotenv").config;
 
 const LoaiNhaDat = require("../models/LoaiNhaDat");
-
+const { validateFieldsNoSpecialChars } = require("../utils/validators")
 exports.getAllLoaiNhaDat = async (req, res) => {
     try {
-        const loaiNhaDats = await LoaiNhaDat.findAll();
+        const loaiNhaDats = res.paginateResult;
         res.json(loaiNhaDats);
     } catch (error) {
         res.status(500).json({ error: "Lỗi khi lấy loại nhà đất" });
@@ -34,6 +34,9 @@ exports.addLoaiNhaDat = async (req, res) => {
         if (!MaLoaiDat || !TenLoaiDat) {
             return res.status(400).json({ error: "Mã loại đất và Tên loại đất không được bỏ trống" });
         }
+        if (validateFieldsNoSpecialChars([MaLoaiDat, TenLoaiDat])) {
+            return res.status(400).json({ error: "Thông tin có chứa ký tự đặc biệt không hợp lệ" });
+        }
         const existsMaLoaiDat = await LoaiNhaDat.findOne({ where: { MaLoaiDat } });
         if (existsMaLoaiDat) return res.status(400).json({ error: "Mã loại nhà đất đã tồn tại" });
         const newMaLoaiDat = await LoaiNhaDat.create({
@@ -58,7 +61,9 @@ exports.updateLoaiNhaDat = async (req, res) => {
         if (!loaiNhaDat) {
             return res.status(404).json({ error: "Không tìm thấy loại nhà đất" });
         }
-
+        if (validateFieldsNoSpecialChars([MaLoaiDat, TenLoaiDat])) {
+            return res.status(400).json({ error: "Thông tin có chứa ký tự đặc biệt không hợp lệ" });
+        }
         // Chỉ kiểm tra trùng MaLoaiDat nếu người dùng gửi MaLoaiDat mới
         if (MaLoaiDat && MaLoaiDat !== loaiNhaDat.MaLoaiDat) {
             const existsMaLoaiDat = await LoaiNhaDat.findOne({ where: { MaLoaiDat } });
