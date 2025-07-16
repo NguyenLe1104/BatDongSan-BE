@@ -111,15 +111,16 @@ exports.addNhaDat = async (req, res) => {
 exports.updateNhaDat = async (req, res) => {
     try {
         const { id } = req.params;
-        const { MaNhaDat, ...updateData } = req.body;
-
-        const nhaDat = await NhaDat.findByPk(id);
-        if (!nhaDat) return res.status(404).json({ error: "Không tìm thấy nhà đất" });
+        const { MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich } = req.body;
 
         const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich];
         if (validateFieldsNoSpecialChars(fieldsToCheck)) {
             return res.status(400).json({ error: "Thông tin có chứa ký tự đặc biệt. Vui lòng thử lại!" });
         }
+
+        const nhaDat = await NhaDat.findByPk(id);
+        if (!nhaDat) return res.status(404).json({ error: "Không tìm thấy nhà đất" });
+
         // Kiểm tra nếu MaNhaDat mới bị trùng với một nhà đất khác
         if (MaNhaDat) {
             const existingNhaDat = await NhaDat.findOne({ where: { MaNhaDat } });
@@ -127,6 +128,7 @@ exports.updateNhaDat = async (req, res) => {
                 return res.status(400).json({ error: "Mã nhà đất đã tồn tại" });
             }
         }
+
         if (req.files && req.files.length > 0) {
             // Xoá ảnh cũ
             await HinhAnhNhaDat.destroy({ where: { idNhaDat: id } });
@@ -139,9 +141,8 @@ exports.updateNhaDat = async (req, res) => {
             await HinhAnhNhaDat.bulkCreate(newHinhAnh);
         }
 
-
-
-        await nhaDat.update(updateData);
+        // Cập nhật tất cả các trường trong req.body (trừ MaNhaDat đã xử lý riêng nếu cần)
+        await nhaDat.update(req.body);
 
         res.status(200).json({ message: "Cập nhật thành công!", data: nhaDat });
     } catch (error) {
@@ -149,7 +150,6 @@ exports.updateNhaDat = async (req, res) => {
         return res.status(500).json({ error: "Lỗi máy chủ" });
     }
 };
-
 exports.deleteNhaDat = async (req, res) => {
     try {
         const { id } = req.params;
