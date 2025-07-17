@@ -9,25 +9,25 @@ exports.register = async (req, res) => {
     try {
         const { username, password, HoTen, SoDienThoai, email, DiaChi } = req.body;
         if (!username || !password) {
-            return res.status(400).json({ error: "Username và Password không được bỏ trống" });
+            return res.status(400).json({ error: "Tên tài khoản và mật khẩu không được bỏ trống" });
         }
         //ktra useruser
         const existUsername = await User.findOne({
             where: { username }
         });
-        if (existUsername) return res.status(400).json({ error: "Username đã tồn tại" });
+        if (existUsername) return res.status(400).json({ error: "Tên tài khoản đã tồn tại. Vui lòng nhập tên khác!" });
 
         //ktra email
         const existEmail = await User.findOne({
             where: { email }
         });
-        if (existEmail) return res.status(400).json({ error: "Email đã tồn tại" });
+        if (existEmail) return res.status(400).json({ error: "Email đã đã được đăng ký!" });
 
         //ktra sdt
         const existSoDienThoai = await User.findOne({
             where: { SoDienThoai }
         });
-        if (existSoDienThoai) return res.status(400).json({ error: "Số điện thoại đã tồn tại" });
+        if (existSoDienThoai) return res.status(400).json({ error: "Số điện thoại đã được đăng ký" });
         const otp = generateOTP();
         const expireAt = new Date(Date.now() + 5 * 60 * 1000); // 5p
 
