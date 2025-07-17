@@ -14,7 +14,7 @@ const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, pr
             instanceName: process.env.DB_SERVER.split("\\")[1] || undefined,
         },
     },
-    logging: console.log,
+    logging: false, // Tắt log để giảm spam
 });
 
 module.exports = sequelize;

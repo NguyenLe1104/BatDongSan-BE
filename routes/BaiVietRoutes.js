@@ -10,6 +10,8 @@ router.get("/da-duyet", baiVietController.layBaiVietDaDuyet);
 router.get("/admin/cho-duyet", verifyToken, checkRole(["ADMIN"]), baiVietController.layBaiChoDuyet);
 router.patch("/admin/:id/duyet", verifyToken, checkRole(["ADMIN"]), baiVietController.duyetBaiViet);
 router.patch("/admin/:id/tu-choi", verifyToken, checkRole(["ADMIN"]), baiVietController.tuChoiBaiViet);
+router.delete('/admin/:id', verifyToken, checkRole(["ADMIN"]), baiVietController.xoaBaiViet);
+
 router.put(
     "/admin/:id",
     verifyToken,
@@ -18,5 +20,5 @@ router.put(
     baiVietController.capNhatBaiViet
 );
 router.get("/", baiVietController.layTatCaBaiViet);
-
+router.get('/:id', baiVietController.layChiTietBaiViet);
 module.exports = router;
