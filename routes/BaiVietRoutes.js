@@ -21,4 +21,6 @@ router.put(
 );
 router.get("/", baiVietController.layTatCaBaiViet);
 router.get('/:id', baiVietController.layChiTietBaiViet);
+
+router.get('/lien-quan/:id', baiVietController.layBaiVietLienQuan);
 module.exports = router;
