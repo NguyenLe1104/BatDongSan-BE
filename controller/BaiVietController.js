@@ -1,6 +1,8 @@
+const { Op } = require('sequelize');
 const BaiViet = require("../models/BaiViet");
 const User = require("../models/User");
 const HinhAnhBaiViet = require("../models/HinhAnhBaiViet");
+
 const taoBaiViet = async (req, res) => {
     try {
         const { tieuDe, noiDung, gia, diaChi } = req.body;
@@ -234,6 +236,39 @@ const layChiTietBaiViet = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi lấy chi tiết bài viết" });
     }
 };
+
+
+const layBaiVietLienQuan = async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Lấy các bài viết đã duyệt, khác id hiện tại, lấy tối đa 6 bài mới nhất
+        const baiVietLienQuan = await BaiViet.findAll({
+            where: {
+                TrangThai: 1,
+                id: { [Op.ne]: id }
+            },
+            include: [
+                {
+                    model: User,
+                    as: "nguoiDang",
+                    attributes: ["id", "username", "HoTen", "SoDienThoai"]
+                },
+                {
+                    model: HinhAnhBaiViet,
+                    as: "hinhAnh",
+                    attributes: ["id", "url", "position"]
+                }
+            ],
+            limit: 6,
+            order: [['ngayDang', 'DESC']]
+        });
+
+        res.json(baiVietLienQuan);
+    } catch (error) {
+        console.error("Lỗi lấy bài viết liên quan:", error);
+        res.status(500).json({ message: "Lỗi khi lấy bài viết liên quan" });
+    }
+};
 const capNhatBaiViet = async (req, res) => {
     try {
         const { id } = req.params;
@@ -302,5 +337,6 @@ module.exports = {
     layTatCaBaiViet,
     capNhatBaiViet,
     layChiTietBaiViet,
-    xoaBaiViet
+    xoaBaiViet,
+    layBaiVietLienQuan
 };
