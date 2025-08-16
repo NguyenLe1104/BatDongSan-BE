@@ -10,6 +10,7 @@ const khachHangRoutes = require("./routes/KhachHangRoutes");
 const nhanVienRoutes = require("./routes/NhanVienRoutes");
 const authRoutes = require("./routes/AuthRoutes");
 const baiVietRoutes = require("./routes/BaiVietRoutes");
+const danhMucYeuThichRoutes = require("./routes/DanhMucYeuThichRoutes");
 const cors = require("cors");
 
 require("./models/quanhe");
@@ -41,6 +42,8 @@ app.use("/api/khachHang", khachHangRoutes);
 app.use("/api/nhanVien", nhanVienRoutes);
 app.use("/api", authRoutes);
 
+app.use("/api/danh-muc-yeu-thich", danhMucYeuThichRoutes);
+
 app.use("/api/bai-viet", baiVietRoutes);
 const PORT = process.env.PORT;
 
@@ -54,3 +57,4 @@ sequelize.sync({ alter: true })
     .catch((error) => {
         console.error("Lỗi kết nối database:", error);
     });
+
