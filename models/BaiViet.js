@@ -1,26 +1,47 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+
 const BaiViet = sequelize.define("BaiViet", {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    tieuDe: {
+    TieuDe: {   // ✅ Thêm trường Tiêu đề
         type: DataTypes.STRING,
         allowNull: false,
     },
-    noiDung: {
+    ThanhPho: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    Quan: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    Phuong: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    DiaChi: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    MoTa: {
         type: DataTypes.TEXT,
         allowNull: false,
     },
-    gia: {
-        type: DataTypes.DECIMAL,
+    GiaBan: {
+        type: DataTypes.DECIMAL(15, 2),
         allowNull: false,
     },
-    diaChi: {
-        type: DataTypes.STRING,
+    DienTich: {
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+    },
+    Huong: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     TrangThai: {
         type: DataTypes.INTEGER,
@@ -33,14 +54,15 @@ const BaiViet = sequelize.define("BaiViet", {
     ngayDang: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,  // mặc định lấy ngày tạo
+        defaultValue: DataTypes.NOW,
     },
     ngayDuyet: {
         type: DataTypes.DATE,
-        allowNull: true, // vì chưa duyệt thì để null
+        allowNull: true,
     }
 }, {
     tableName: 'BaiViet',
     timestamps: true,
 });
+
 module.exports = BaiViet;
