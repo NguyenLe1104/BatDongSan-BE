@@ -10,6 +10,8 @@ const khachHangRoutes = require("./routes/KhachHangRoutes");
 const nhanVienRoutes = require("./routes/NhanVienRoutes");
 const authRoutes = require("./routes/AuthRoutes");
 const baiVietRoutes = require("./routes/BaiVietRoutes");
+const doiMatKhauUserRoutes = require("./routes/DoiMatKhauUserRoutes");
+const datLichHenRoutes = require("./routes/DatLichHenRoutes");
 const cors = require("cors");
 
 require("./models/quanhe");
@@ -42,6 +44,9 @@ app.use("/api/nhanVien", nhanVienRoutes);
 app.use("/api", authRoutes);
 
 app.use("/api/bai-viet", baiVietRoutes);
+
+app.use("/api/lichHen", datLichHenRoutes);
+app.use("/api", doiMatKhauUserRoutes);
 const PORT = process.env.PORT;
 
 sequelize.sync({ alter: true })

@@ -2,7 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const VaiTro = require("../models/VaiTro");
 const UserVaiTro = require("../models/User_VaiTro");
-
+const KhachHang = require("../models/KhachHang");
 exports.getAllUsers = async (req, res) => {
     try {
         const users = await User.findAll();
@@ -65,6 +65,7 @@ exports.addUser = async (req, res) => {
             User_id: newUser.id,
             VaiTro_id: vaitroKH.id,
         });
+        await KhachHang.create({ User_id: newUser.id, MaKH: `KH${newUser.id.toString().padStart(3, '0')}` });
 
         res.status(201).json({ message: "Thêm tài khoản thành công!" });
     } catch (error) {
