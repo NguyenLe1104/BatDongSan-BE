@@ -5,6 +5,8 @@ const UserVaiTro = require("../models/User_VaiTro");
 const generateOTP = require("../utils/generateOTP");
 const PasswordReset = require("../models/PasswordReset");
 const { sendEmail } = require("../config/mail");
+const KhachHang = require("../models/KhachHang");
+
 exports.register = async (req, res) => {
     try {
         const { username, password, HoTen, SoDienThoai, email, DiaChi } = req.body;
@@ -83,6 +85,7 @@ exports.confirmRegister = async (req, res) => {
             User_id: newUser.id,
             VaiTro_id: vaitroKH.id,
         });
+        await KhachHang.create({ User_id: newUser.id, MaKH: `KH${newUser.id.toString().padStart(3, '0')}` });
 
         await PasswordReset.destroy({ where: { email, type: 'register' } });
 
