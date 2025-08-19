@@ -1,7 +1,6 @@
 const DanhMucYeuThich = require("../models/DanhMucYeuThich");
 const NhaDat = require("../models/NhaDat");
-
-// Lấy danh sách yêu thích của user
+const HinhAnhNhaDat = require("../models/HinhAnhNhaDat");
 exports.list = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -10,19 +9,26 @@ exports.list = async (req, res) => {
     }
 
     const favorites = await DanhMucYeuThich.findAll({
-      where: { UserId: userId }, // đồng bộ với DB
+      where: { UserId: userId },
       include: [
         {
           model: NhaDat,
-          as: "NhaDat" // alias khớp với associations trong models/quanhe.js
-        }
-      ]
+          as: "nhaDatYeuThich",
+          include: [
+            {
+              model: HinhAnhNhaDat,
+              as: "hinhAnh",
+              attributes: ["id", "url"],
+            },
+          ],
+        },
+      ],
     });
 
     res.json(favorites);
-  } catch (err) {
-    console.error("Lỗi khi lấy danh mục yêu thích:", err);
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách yêu thích:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
 
@@ -47,9 +53,7 @@ exports.add = async (req, res) => {
     }
 
     // Kiểm tra đã tồn tại chưa
-    const exists = await DanhMucYeuThich.findOne({
-      where: { UserId: userId, NhaDatId }
-    });
+    const exists = await DanhMucYeuThich.findOne({ where: { UserId: userId, NhaDatId } });
     if (exists) {
       return res.status(400).json({ message: "Bất động sản đã tồn tại trong danh sách yêu thích" });
     }
@@ -74,7 +78,7 @@ exports.remove = async (req, res) => {
     }
 
     const deleted = await DanhMucYeuThich.destroy({
-      where: { UserId: userId, NhaDatId: nhaDatId }
+      where: { UserId: userId, NhaDatId: nhaDatId },
     });
 
     if (!deleted) {
