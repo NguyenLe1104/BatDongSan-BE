@@ -11,6 +11,8 @@ const LichHen = require("../models/LichHen");
 const HinhAnhNhaDat = require("../models/HinhAnhNhaDat");
 const BaiViet = require("../models/BaiViet");
 const HinhAnhBaiViet = require("../models/HinhAnhBaiViet");
+const Danhmucyeuthich = require("../models/DanhMucYeuThich");
+
 // Quan hệ 1-1: User - KhachHang
 User.hasOne(KhachHang, { foreignKey: "User_id" });
 KhachHang.belongsTo(User, { foreignKey: "User_id" });
@@ -62,7 +64,18 @@ BaiViet.belongsTo(User, { foreignKey: "userId", as: "nguoiDang" });
 // Quan hệ 1-n: BaiViet - HinhAnhBaiViet
 BaiViet.hasMany(HinhAnhBaiViet, { foreignKey: "baiVietId", as: "hinhAnh" });
 HinhAnhBaiViet.belongsTo(BaiViet, { foreignKey: "baiVietId" });
+
+// Quan hệ 1-n: User - DanhMucYeuThich
+User.hasMany(Danhmucyeuthich, { foreignKey: "UserId", as: "danhMucYeuThich" });
+Danhmucyeuthich.belongsTo(User, { foreignKey: "UserId", as: "nguoiYeuThich" });
+
+// Quan hệ 1-n: NhaDat - DanhMucYeuThich
+NhaDat.hasMany(Danhmucyeuthich, { foreignKey: "NhaDatId", as: "danhMucYeuThich" });
+Danhmucyeuthich.belongsTo(NhaDat, { foreignKey: "NhaDatId", as: "nhaDatYeuThich" });
+
+
+
 module.exports = {
     User, KhachHang, NhanVien, NhaDat, VaiTro, LoaiNhaDat,
-    UserVaiTro, ThongTinDatBan, HopDong, LichHen, BaiViet
+    UserVaiTro, ThongTinDatBan, HopDong, LichHen, BaiViet, Danhmucyeuthich
 };

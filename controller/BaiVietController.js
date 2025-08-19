@@ -5,39 +5,36 @@ const HinhAnhBaiViet = require("../models/HinhAnhBaiViet");
 
 const taoBaiViet = async (req, res) => {
     try {
-        const { tieuDe, noiDung, gia, diaChi } = req.body;
-
+        const { TieuDe, ThanhPho, Quan, Phuong, DiaChi, MoTa, GiaBan, DienTich, Huong } = req.body;
         const uploadedFiles = req.files;
 
-        // Kiểm tra req.user.id
         if (!req.user || !req.user.id) {
             return res.status(401).json({ message: "Người dùng chưa được xác thực hoặc không có." });
         }
 
-        // Tạo bài viết trước, trạng thái chờ duyệt
         const baiViet = await BaiViet.create({
-            tieuDe,
-            noiDung,
-            gia,
-            diaChi,
-            TrangThai: 0,
+            TieuDe,
+            ThanhPho,
+            Quan,
+            Phuong,
+            DiaChi,
+            MoTa,
+            GiaBan,
+            DienTich,
+            Huong,
+            TrangThai: 1,
             userId: req.user.id,
         });
 
-        // Lưu thông tin ảnh vào bảng HinhAnhBaiViet nếu có files
         if (uploadedFiles && uploadedFiles.length > 0) {
-            // Lấy URL trực tiếp từ uploadedFiles (đã được Cloudinary tải lên)
             const hinhAnhData = uploadedFiles.map((file, index) => ({
                 url: file.path || file.secure_url,
                 baiVietId: baiViet.id,
                 position: index + 1,
             }));
-
-            // Lưu ảnh vào bảng HinhAnhBaiViet
             await HinhAnhBaiViet.bulkCreate(hinhAnhData);
         }
 
-        // Lấy lại bài viết kèm ảnh để trả về client
         const baiVietFull = await BaiViet.findByPk(baiViet.id, {
             include: {
                 model: HinhAnhBaiViet,
@@ -47,66 +44,66 @@ const taoBaiViet = async (req, res) => {
         });
 
         res.status(201).json({
-            message: "Bài viết đã được gửi và đang chờ admin duyệt.",
+            message: "Bài viết đã được tạo và đang chờ admin duyệt.",
             baiViet: baiVietFull,
         });
-
     } catch (error) {
         console.error("Lỗi tạo bài viết:", error);
         res.status(500).json({ message: "Lỗi khi tạo bài viết", error: error.message });
     }
 };
+
 const layBaiVietDaDuyet = async (req, res) => {
     try {
         const { page = 1, limit = 8 } = req.query;
         const offset = (page - 1) * limit;
 
         const result = await BaiViet.findAndCountAll({
-            where: { TrangThai: 1 }, // Chỉ lấy bài viết đã duyệt
+            where: { TrangThai: 2 },
             include: [
                 {
                     model: User,
                     as: "nguoiDang",
-                    attributes: ["id", "username", "HoTen", "SoDienThoai"] // Thêm SoDienThoai vào đây
+                    attributes: ["id", "username", "HoTen", "SoDienThoai"],
                 },
                 {
                     model: HinhAnhBaiViet,
                     as: "hinhAnh",
                     attributes: ["id", "url", "position"],
-                }
+                },
             ],
             limit: parseInt(limit),
             offset: parseInt(offset),
-            order: [['ngayDang', 'DESC']] // Sắp xếp theo ngày đăng mới nhất
+            order: [['ngayDang', 'DESC']],
         });
 
-        // Trả về format giống middleware paginate
         res.json({
             currentPage: parseInt(page),
             totalPages: Math.ceil(result.count / limit),
             totalItems: result.count,
-            data: result.rows
+            data: result.rows,
         });
     } catch (error) {
         console.error("Lỗi lấy danh sách bài viết:", error);
         res.status(500).json({ message: "Lỗi khi lấy danh sách bài viết" });
     }
 };
+
 const layBaiChoDuyet = async (req, res) => {
     try {
         const baiChoDuyet = await BaiViet.findAll({
-            where: { TrangThai: 0 },
+            where: { TrangThai: 1 },
             include: [
                 {
                     model: User,
                     as: "nguoiDang",
-                    attributes: ["id", "username", "HoTen", "SoDienThoai"] // Thêm SoDienThoai
+                    attributes: ["id", "username", "HoTen", "SoDienThoai"],
                 },
                 {
                     model: HinhAnhBaiViet,
                     as: "hinhAnh",
                     attributes: ["id", "url", "position"],
-                }
+                },
             ],
         });
 
@@ -124,7 +121,8 @@ const duyetBaiViet = async (req, res) => {
         const baiViet = await BaiViet.findByPk(id);
         if (!baiViet) return res.status(404).json({ message: "Không tìm thấy bài viết" });
 
-        baiViet.TrangThai = 1; // duyệt
+        baiViet.TrangThai = 2;
+        baiViet.ngayDuyet = new Date();
         await baiViet.save();
 
         res.json({ message: "Bài viết đã được duyệt thành công", baiViet });
@@ -133,6 +131,7 @@ const duyetBaiViet = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi duyệt bài viết" });
     }
 };
+
 const tuChoiBaiViet = async (req, res) => {
     try {
         const { id } = req.params;
@@ -140,7 +139,8 @@ const tuChoiBaiViet = async (req, res) => {
         const baiViet = await BaiViet.findByPk(id);
         if (!baiViet) return res.status(404).json({ message: "Không tìm thấy bài viết" });
 
-        baiViet.TrangThai = 2; // từ chối
+        baiViet.TrangThai = 3;
+        baiViet.ngayDuyet = new Date();
         await baiViet.save();
 
         res.json({ message: "Bài viết đã bị từ chối", baiViet });
@@ -149,25 +149,23 @@ const tuChoiBaiViet = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi từ chối bài viết" });
     }
 };
+
 const xoaBaiViet = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Tìm bài viết theo id
         const baiViet = await BaiViet.findByPk(id, {
-            include: { model: HinhAnhBaiViet, as: "hinhAnh" }
+            include: { model: HinhAnhBaiViet, as: "hinhAnh" },
         });
-        
+
         if (!baiViet) {
             return res.status(404).json({ message: "Không tìm thấy bài viết" });
         }
 
-        // Xóa tất cả ảnh liên quan trước
         if (baiViet.hinhAnh && baiViet.hinhAnh.length > 0) {
             await HinhAnhBaiViet.destroy({ where: { baiVietId: id } });
         }
 
-        // Xóa bài viết
         await baiViet.destroy();
 
         res.json({ message: "Bài viết đã được xóa thành công" });
@@ -176,6 +174,7 @@ const xoaBaiViet = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi xóa bài viết", error: error.message });
     }
 };
+
 const layTatCaBaiViet = async (req, res) => {
     try {
         const danhSach = await BaiViet.findAll({
@@ -183,15 +182,15 @@ const layTatCaBaiViet = async (req, res) => {
                 {
                     model: User,
                     as: "nguoiDang",
-                    attributes: ["id", "username", "HoTen", "SoDienThoai"] // Thêm SoDienThoai
+                    attributes: ["id", "username", "HoTen", "SoDienThoai"],
                 },
                 {
                     model: HinhAnhBaiViet,
                     as: "hinhAnh",
-                    attributes: ["id", "url", "position"]
-                }
+                    attributes: ["id", "url", "position"],
+                },
             ],
-            order: [['TrangThai', 'ASC']] // 0 → 1 → 2
+            order: [['TrangThai', 'ASC']],
         });
 
         res.json(danhSach);
@@ -200,6 +199,7 @@ const layTatCaBaiViet = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi lấy danh sách bài viết" });
     }
 };
+
 const layChiTietBaiViet = async (req, res) => {
     try {
         const { id } = req.params;
@@ -209,24 +209,21 @@ const layChiTietBaiViet = async (req, res) => {
                 {
                     model: User,
                     as: "nguoiDang",
-                    attributes: ["id", "username", "HoTen", "SoDienThoai"]
+                    attributes: ["id", "username", "HoTen", "SoDienThoai"],
                 },
                 {
                     model: HinhAnhBaiViet,
                     as: "hinhAnh",
-                    attributes: ["id", "url", "position"]
-                    // Bỏ order ở đây
-                }
+                    attributes: ["id", "url", "position"],
+                },
             ],
-            order: [['ngayDang', 'DESC']] // Thêm order ở ngoài
         });
 
         if (!baiViet) {
             return res.status(404).json({ message: "Không tìm thấy bài viết" });
         }
 
-        // Chỉ trả về bài viết đã duyệt (trạng thái = 1) cho người dùng công khai
-        if (baiViet.TrangThai !== 1) {
+        if (baiViet.TrangThai !== 2) {
             return res.status(404).json({ message: "Bài viết không tồn tại hoặc chưa được duyệt" });
         }
 
@@ -237,30 +234,28 @@ const layChiTietBaiViet = async (req, res) => {
     }
 };
 
-
 const layBaiVietLienQuan = async (req, res) => {
     try {
         const { id } = req.params;
-        // Lấy các bài viết đã duyệt, khác id hiện tại, lấy tối đa 6 bài mới nhất
         const baiVietLienQuan = await BaiViet.findAll({
             where: {
-                TrangThai: 1,
-                id: { [Op.ne]: id }
+                TrangThai: 2,
+                id: { [Op.ne]: id },
             },
             include: [
                 {
                     model: User,
                     as: "nguoiDang",
-                    attributes: ["id", "username", "HoTen", "SoDienThoai"]
+                    attributes: ["id", "username", "HoTen", "SoDienThoai"],
                 },
                 {
                     model: HinhAnhBaiViet,
                     as: "hinhAnh",
-                    attributes: ["id", "url", "position"]
-                }
+                    attributes: ["id", "url", "position"],
+                },
             ],
             limit: 6,
-            order: [['ngayDang', 'DESC']]
+            order: [['ngayDang', 'DESC']],
         });
 
         res.json(baiVietLienQuan);
@@ -269,37 +264,39 @@ const layBaiVietLienQuan = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi lấy bài viết liên quan" });
     }
 };
+
 const capNhatBaiViet = async (req, res) => {
     try {
         const { id } = req.params;
-        const { tieuDe, noiDung, gia, diaChi } = req.body;
+        const { TieuDe, ThanhPho, Quan, Phuong, DiaChi, MoTa, GiaBan, DienTich, Huong, TrangThai } = req.body;
         const uploadedFiles = req.files;
 
-        // Tìm bài viết theo id
         const baiViet = await BaiViet.findByPk(id, {
-            include: { model: HinhAnhBaiViet, as: "hinhAnh" }
+            include: { model: HinhAnhBaiViet, as: "hinhAnh" },
         });
         if (!baiViet) {
             return res.status(404).json({ message: "Không tìm thấy bài viết" });
         }
 
-        // Chỉ cho sửa nếu bài viết đã được duyệt
-        if (baiViet.TrangThai !== 1) {
-            return res.status(400).json({ message: "Chỉ có thể sửa bài viết đã duyệt" });
+        if (baiViet.TrangThai !== 1 && baiViet.TrangThai !== 2) {
+            return res.status(400).json({ message: "Chỉ có thể sửa bài viết ở trạng thái chờ duyệt hoặc đã duyệt" });
         }
 
-        // Cập nhật thông tin bài viết
-        baiViet.tieuDe = tieuDe;
-        baiViet.noiDung = noiDung;
-        baiViet.gia = gia;
-        baiViet.diaChi = diaChi;
+        baiViet.TieuDe = TieuDe;
+        baiViet.ThanhPho = ThanhPho;
+        baiViet.Quan = Quan;
+        baiViet.Phuong = Phuong;
+        baiViet.DiaChi = DiaChi;
+        baiViet.MoTa = MoTa;
+        baiViet.GiaBan = GiaBan;
+        baiViet.DienTich = DienTich;
+        baiViet.Huong = Huong;
+        if (TrangThai !== undefined) {
+            baiViet.TrangThai = TrangThai;
+        }
 
-        // Nếu upload ảnh mới, xóa ảnh cũ trước (hoặc bạn có thể cho phép giữ lại ảnh cũ)
         if (uploadedFiles && uploadedFiles.length > 0) {
-            // Xóa ảnh cũ trong DB (nếu muốn)
             await HinhAnhBaiViet.destroy({ where: { baiVietId: baiViet.id } });
-
-            // Lưu ảnh mới
             const hinhAnhData = uploadedFiles.map((file, index) => ({
                 url: file.path,
                 baiVietId: baiViet.id,
@@ -310,7 +307,6 @@ const capNhatBaiViet = async (req, res) => {
 
         await baiViet.save();
 
-        // Lấy lại bài viết kèm ảnh mới cập nhật
         const baiVietFull = await BaiViet.findByPk(baiViet.id, {
             include: {
                 model: HinhAnhBaiViet,
@@ -328,6 +324,7 @@ const capNhatBaiViet = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi cập nhật bài viết", error: error.message });
     }
 };
+
 module.exports = {
     taoBaiViet,
     layBaiVietDaDuyet,
@@ -338,5 +335,5 @@ module.exports = {
     capNhatBaiViet,
     layChiTietBaiViet,
     xoaBaiViet,
-    layBaiVietLienQuan
+    layBaiVietLienQuan,
 };
