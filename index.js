@@ -10,6 +10,9 @@ const khachHangRoutes = require("./routes/KhachHangRoutes");
 const nhanVienRoutes = require("./routes/NhanVienRoutes");
 const authRoutes = require("./routes/AuthRoutes");
 const baiVietRoutes = require("./routes/BaiVietRoutes");
+const danhMucYeuThichRoutes = require("./routes/DanhMucYeuThichRoutes");
+const doiMatKhauUserRoutes = require("./routes/DoiMatKhauUserRoutes");
+const datLichHenRoutes = require("./routes/DatLichHenRoutes");
 const cors = require("cors");
 
 require("./models/quanhe");
