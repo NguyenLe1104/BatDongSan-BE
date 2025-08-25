@@ -77,5 +77,8 @@ Danhmucyeuthich.belongsTo(NhaDat, { foreignKey: "NhaDatId", as: "nhaDatYeuThich"
 
 module.exports = {
     User, KhachHang, NhanVien, NhaDat, VaiTro, LoaiNhaDat,
-    UserVaiTro, ThongTinDatBan, HopDong, LichHen, BaiViet, Danhmucyeuthich
+    UserVaiTro, ThongTinDatBan, HopDong, LichHen,
+    BaiViet, HinhAnhBaiViet,
+    HinhAnhNhaDat,
+    Danhmucyeuthich
 };
