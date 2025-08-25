@@ -13,6 +13,7 @@ const baiVietRoutes = require("./routes/BaiVietRoutes");
 const danhMucYeuThichRoutes = require("./routes/DanhMucYeuThichRoutes");
 const doiMatKhauUserRoutes = require("./routes/DoiMatKhauUserRoutes");
 const datLichHenRoutes = require("./routes/DatLichHenRoutes");
+const batDongSanNoiBatRoutes = require("./routes/BatDongSanNoiBatRoutes");
 const cors = require("cors");
 
 require("./models/quanhe");
@@ -21,7 +22,7 @@ const app = express();
 
 
 app.use(cors({
-    origin: ["http://localhost:3000", "http://localhost:3001", "https://batdongsan-blacks.netlify.app"],  // url FE
+    origin: ["http://localhost:3000", "http://localhost:3001", "https://batdongsan-blacks.netlify.app/"],  // url FE
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -50,6 +51,7 @@ app.use("/api/bai-viet", baiVietRoutes);
 
 app.use("/api/lichHen", datLichHenRoutes);
 app.use("/api", doiMatKhauUserRoutes);
+app.use("/api", batDongSanNoiBatRoutes);
 const PORT = process.env.PORT;
 
 sequelize.sync({ alter: true })

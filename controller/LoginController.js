@@ -4,6 +4,8 @@ const { where } = require("sequelize");
 const User = require("../models/User");
 const VaiTro = require("../models/VaiTro");
 const UserVaiTro = require("../models/User_VaiTro");
+const NhanVien = require("../models/NhanVien");
+
 const bcrypt = require("bcrypt");
 
 exports.login = async (req, res) => {
@@ -34,6 +36,12 @@ exports.login = async (req, res) => {
         // Chuyển danh sách vai trò thành mảng
         const roles = userRoles.map(ur => ur.VaiTro.MaVaiTro);
 
+        let nhanVienId = null;
+        if (roles.includes("NHANVIEN")) {
+            const nhanVien = await NhanVien.findOne({ where: { User_id: user.id } });
+            if (nhanVien) nhanVienId = nhanVien.id;
+        }
+
         // Tạo JWT token
         const token = jwt.sign(
             { id: user.id, username: user.username, roles },
@@ -41,7 +49,13 @@ exports.login = async (req, res) => {
             { expiresIn: process.env.JWT_EXPIRES }
         );
 
-        res.json({ message: "Đăng nhập thành công!", token, roles });
+        res.json({
+            message: "Đăng nhập thành công!",
+            token,
+            roles,
+            userId: user.id,
+            nhanVienId // sẽ trả null nếu không phải nhân viên
+        });
     } catch (error) {
         console.error("Lỗi đăng nhập:", error);
         res.status(500).json({ error: "Lỗi đăng nhập" });
