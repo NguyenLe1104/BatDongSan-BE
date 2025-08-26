@@ -22,5 +22,6 @@ router.get("/:id", nhaDatController.getNhaDatById);
 router.post("/addNhaDat", uploadMultiple, nhaDatController.addNhaDat);
 router.put("/:id", uploadMultiple, nhaDatController.updateNhaDat);
 router.delete("/:id", nhaDatController.deleteNhaDat);
+router.get("/:id/related", nhaDatController.getRelatedNhaDat);
 
 module.exports = router;

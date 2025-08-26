@@ -269,3 +269,108 @@ exports.searchNhaDat = async (req, res) => {
         return res.status(500).json({ error: "Lỗi khi tìm kiếm nhà đất" });
     }
 };
+exports.getRelatedNhaDat = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const propertyId = parseInt(id, 10);
+
+        if (isNaN(propertyId)) {
+            return res.status(400).json({ error: "ID không hợp lệ, phải là số nguyên" });
+        }
+
+        const currentProperty = await NhaDat.findByPk(propertyId);
+        if (!currentProperty) {
+            return res.status(404).json({ error: "Không tìm thấy bất động sản" });
+        }
+
+        let whereClause = {
+            id: { [Op.ne]: propertyId },
+            TrangThai: 1,
+            LoaiNhaDat_id: currentProperty.LoaiNhaDat_id,
+        };
+
+        // Điều kiện 1: đủ loại + giá + khu vực
+        if (currentProperty.GiaBan) {
+            whereClause.GiaBan = {
+                [Op.between]: [
+                    currentProperty.GiaBan * 0.8,
+                    currentProperty.GiaBan * 1.2,
+                ],
+            };
+        }
+
+        if (currentProperty.ThanhPho || currentProperty.Quan) {
+            whereClause[Op.or] = [];
+            if (currentProperty.ThanhPho) {
+                whereClause[Op.or].push({ ThanhPho: currentProperty.ThanhPho });
+            }
+            if (currentProperty.Quan) {
+                whereClause[Op.or].push({ Quan: currentProperty.Quan });
+            }
+        }
+
+        let relatedProperties = await NhaDat.findAll({
+            where: whereClause,
+            limit: 4,
+            include: [
+                { model: LoaiNhaDat, attributes: ["id", "TenLoaiDat"] },
+                { model: HinhAnhNhaDat, as: "hinhAnh", attributes: ["url"] },
+            ],
+            order: [["createdAt", "DESC"]],
+        });
+
+        // Nếu không tìm thấy, fallback tìm theo loại + thành phố
+        if (relatedProperties.length === 0) {
+            let fallbackWhere = {
+                id: { [Op.ne]: propertyId },
+                TrangThai: 1,
+                LoaiNhaDat_id: currentProperty.LoaiNhaDat_id,
+                ThanhPho: currentProperty.ThanhPho,
+            };
+
+            relatedProperties = await NhaDat.findAll({
+                where: fallbackWhere,
+                limit: 4,
+                include: [
+                    { model: LoaiNhaDat, attributes: ["id", "TenLoaiDat"] },
+                    { model: HinhAnhNhaDat, as: "hinhAnh", attributes: ["url"] },
+                ],
+                order: [["createdAt", "DESC"]],
+            });
+        }
+
+        // Nếu vẫn không có thì chỉ tìm theo loại
+        if (relatedProperties.length === 0) {
+            let fallbackWhere = {
+                id: { [Op.ne]: propertyId },
+                TrangThai: 1,
+                LoaiNhaDat_id: currentProperty.LoaiNhaDat_id,
+                ThanhPho: currentProperty.ThanhPho,
+            };
+
+            relatedProperties = await NhaDat.findAll({
+                where: fallbackWhere,
+                limit: 4,
+                include: [
+                    { model: LoaiNhaDat, attributes: ["id", "TenLoaiDat"] },
+                    { model: HinhAnhNhaDat, as: "hinhAnh", attributes: ["url"] },
+                ],
+                order: [["createdAt", "DESC"]],
+            });
+        }
+
+        return res.status(200).json({
+            message:
+                relatedProperties.length > 0
+                    ? "Lấy bất động sản liên quan thành công"
+                    : "Không tìm thấy bất động sản liên quan",
+            data: relatedProperties,
+        });
+    } catch (error) {
+        console.error("Chi tiết lỗi:", error);
+        res.status(500).json({
+            error: "Lỗi khi lấy nhà đất",
+            details: error.message,
+        });
+    }
+};
