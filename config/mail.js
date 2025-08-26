@@ -21,7 +21,7 @@ const sendEmail = async (to, subject, html) => {
 // HTML email cho lịch hẹn được duyệt
 const getEmailHtmlDuyet = (hoTen, ngayHen) => `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-    <div style="background-color: #0c6cff; color: white; padding: 20px; text-align: center;">
+    <div style="background-color: #000000; color: white; padding: 20px; text-align: center;">
         <h2>BlackS City</h2>
         <p style="margin: 0; font-size: 16px;">Chăm sóc khách hàng tận tâm</p>
     </div>

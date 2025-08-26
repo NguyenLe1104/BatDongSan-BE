@@ -8,6 +8,7 @@ const paginate = (model, include = []) => async (req, res, next) => {
             limit,
             offset,
             include,
+            distinct: true, //dem sô ban ghi
         });
 
         res.paginateResult = {

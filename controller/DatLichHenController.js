@@ -1,6 +1,6 @@
 const { LichHen, KhachHang, NhanVien, User, NhaDat, HinhAnhNhaDat } = require("../models/quanhe");
-const { sendEmail } = require("../config/mail");
-const { formatDateTime } = require("../utils/formatDateTime");
+const { sendEmail, getEmailHtmlDuyet, getEmailHtmlHuy } = require("../config/mail");
+const { formatDateTime } = require('../utils/formatDateTime');
 
 // Đặt lịch hẹn
 exports.datLichHen = async (req, res) => {
@@ -71,7 +71,10 @@ exports.duyetLichHen = async (req, res) => {
             await sendEmail(
                 lichHen.KhachHang.User.email,
                 "🎉 Lịch hẹn của bạn đã được duyệt - BlackS City",
-                getEmailHtmlDuyet(lichHen.KhachHang.User.HoTen, formatDateTime(lichHen.NgayHen))
+                getEmailHtmlDuyet(
+                    lichHen.KhachHang.User.HoTen,
+                    formatDateTime(lichHen.NgayHen)
+                )
             );
         }
 
