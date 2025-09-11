@@ -12,7 +12,7 @@ const HinhAnhNhaDat = require("../models/HinhAnhNhaDat");
 const BaiViet = require("../models/BaiViet");
 const HinhAnhBaiViet = require("../models/HinhAnhBaiViet");
 const Danhmucyeuthich = require("../models/DanhMucYeuThich");
-
+const RefreshToken = require("../models/RefreshToken");
 // Quan hệ 1-1: User - KhachHang
 User.hasOne(KhachHang, { foreignKey: "User_id" });
 KhachHang.belongsTo(User, { foreignKey: "User_id" });
@@ -73,7 +73,9 @@ Danhmucyeuthich.belongsTo(User, { foreignKey: "UserId", as: "nguoiYeuThich" });
 NhaDat.hasMany(Danhmucyeuthich, { foreignKey: "NhaDatId", as: "danhMucYeuThich" });
 Danhmucyeuthich.belongsTo(NhaDat, { foreignKey: "NhaDatId", as: "nhaDatYeuThich" });
 
-
+// Quan hệ 1 User có nhiều RefreshToken
+User.hasMany(RefreshToken, { foreignKey: "userId" });
+RefreshToken.belongsTo(User, { foreignKey: "userId" });
 
 module.exports = {
     User, KhachHang, NhanVien, NhaDat, VaiTro, LoaiNhaDat,

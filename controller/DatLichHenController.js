@@ -73,7 +73,8 @@ exports.duyetLichHen = async (req, res) => {
                 "🎉 Lịch hẹn của bạn đã được duyệt - BlackS City",
                 getEmailHtmlDuyet(
                     lichHen.KhachHang.User.HoTen,
-                    formatDateTime(lichHen.NgayHen)
+                    formatDateTime(lichHen.NgayHen),
+
                 )
             );
         }
