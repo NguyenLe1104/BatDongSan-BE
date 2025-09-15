@@ -5,7 +5,7 @@ const UserVaiTro = require("../models/User_VaiTro");
 const KhachHang = require("../models/KhachHang");
 exports.getAllUsers = async (req, res) => {
     try {
-        const users = await User.findAll();
+        const users = res.paginateResult;
         res.json(users);
     } catch (error) {
         console.error("Lỗi khi lấy danh sách người dùng:", error);
