@@ -99,8 +99,18 @@ exports.addNhaDat = async (req, res) => {
 
             await HinhAnhNhaDat.bulkCreate(hinhAnhData);
         }
+        const hinhAnhList = await HinhAnhNhaDat.findAll({
+            where: { idNhaDat: newNhaDat.id },
+            attributes: ["url"]
+        });
 
-        res.status(201).json({ message: "Thêm nhà đất thành công!", data: newNhaDat });
+        res.status(201).json({
+            message: "Thêm nhà đất thành công!",
+            data: {
+                ...newNhaDat.toJSON(),
+                hinhAnh: hinhAnhList
+            }
+        });
     } catch (error) {
         console.error("Lỗi khi thêm nhà đất:", error);
         return res.status(500).json({ error: "Lỗi máy chủ" });
@@ -111,7 +121,7 @@ exports.addNhaDat = async (req, res) => {
 exports.updateNhaDat = async (req, res) => {
     try {
         const { id } = req.params;
-        const { MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich } = req.body;
+        const { MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich, TrangThai } = req.body;
 
         const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich];
         if (validateFieldsNoSpecialChars(fieldsToCheck)) {
@@ -143,8 +153,17 @@ exports.updateNhaDat = async (req, res) => {
 
         // Cập nhật tất cả các trường trong req.body (trừ MaNhaDat đã xử lý riêng nếu cần)
         await nhaDat.update(req.body);
-
-        res.status(200).json({ message: "Cập nhật thành công!", data: nhaDat });
+        const hinhAnhList = await HinhAnhNhaDat.findAll({
+            where: { idNhaDat: id },
+            attributes: ["url"]
+        });
+        res.status(200).json({
+            message: "Cập nhật thành công!",
+            data: {
+                ...nhaDat.toJSON(),
+                hinhAnh: hinhAnhList
+            }
+        });
     } catch (error) {
         console.error("Lỗi khi cập nhật nhà đất:", error);
         return res.status(500).json({ error: "Lỗi máy chủ" });
