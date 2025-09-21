@@ -27,12 +27,14 @@ exports.login = async (req, res) => {
         // Kiểm tra user có tồn tại không
         const user = await User.findOne({ where: { username } });
         if (!user) {
+
             return res.status(400).json({ error: "Tài khoản hoặc mật khẩu không đúng!" });
         }
 
         // Kiểm tra mật khẩu
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
+
             return res.status(400).json({ error: "Tài khoản hoặc mật khẩu không đúng!" });
         }
 
@@ -48,27 +50,37 @@ exports.login = async (req, res) => {
         let nhanVienId = null;
         if (roles.includes("NHANVIEN")) {
             const nhanVien = await NhanVien.findOne({ where: { User_id: user.id } });
+            
             if (nhanVien) nhanVienId = nhanVien.id;
         }
 
         // Tạo access  token
         const accessToken = jwt.sign(
+            
             { id: user.id, username: user.username, roles },
+            
             process.env.JWT_SECRET,
+            
             { expiresIn: process.env.JWT_EXPIRES }
         );
 
         const refreshToken = jwt.sign(
+            
             { id: user.id },
+            
             process.env.JWT_REFRESH_SECRET,
+            
             { expiresIn: process.env.JWT_REFRESH_EXPIRES }
         );
 
 
         await RefreshToken.create({
             token: refreshToken,
+            
             userId: user.id, // liên kết với user
+            
             expiresAt: new Date(Date.now() + refreshTokenExpiresInMs),
+            
             revoked: false
         });
 
@@ -77,8 +89,11 @@ exports.login = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
         if (userTokens.length > MAX_TOKENS) {
+
             const tokensToDelete = userTokens.slice(MAX_TOKENS); // cắt các token cũ nhất
+            
             const idsToDelete = tokensToDelete.map(t => t.id); // lấy id các token cần xóa
+            
             await RefreshToken.destroy({ where: { id: idsToDelete } });
         }
         res.json({
