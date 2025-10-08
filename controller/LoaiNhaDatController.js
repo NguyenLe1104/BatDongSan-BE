@@ -11,6 +11,15 @@ exports.getAllLoaiNhaDat = async (req, res) => {
     }
 };
 
+exports.getAllLoaiDatKhongPhanTrang = async (req, res) => {
+    try {
+        const loaiDatList = await LoaiNhaDat.findAll();
+        res.json(loaiDatList);
+    } catch (error) {
+        res.status(500).json({ error: err.message });
+
+    }
+}
 exports.getLoaiNhaDatById = async (req, res) => {
     try {
         const { id } = req.params;

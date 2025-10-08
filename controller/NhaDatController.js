@@ -5,6 +5,8 @@ const { Op, fn, col, where } = require("sequelize");
 const sequelize = require("../config/database");
 const { cloudinary } = require('../config/cloudinary');
 const { validateFieldsNoSpecialChars } = require("../utils/validators")
+const NhanVien = require("../models/NhanVien");
+const User = require("../models/User");
 exports.getAllNhaDat = async (req, res) => {
     try {
         const nhaDat = res.paginateResult;
@@ -30,6 +32,16 @@ exports.getNhaDatById = async (req, res) => {
                         model: HinhAnhNhaDat,
                         as: 'hinhAnh',
                         attributes: ['url']
+                    },
+                    {
+                        model: NhanVien,
+                        attributes: ["id"],
+                        include: [
+                            {
+                                model: User, // join qua bảng User
+                                attributes: ["id", "HoTen", "SoDienThoai"] // lấy tên, email...
+                            }
+                        ]
                     }
                 ]
             }
@@ -58,7 +70,8 @@ exports.addNhaDat = async (req, res) => {
             GiaBan,
             DienTich,
             Huong,
-            LoaiNhaDat_id
+            LoaiNhaDat_id,
+            NhanVien_id
         } = req.body;
 
         if (!MaNhaDat || !TenNhaDat) {
@@ -87,7 +100,8 @@ exports.addNhaDat = async (req, res) => {
             DienTich,
             Huong,
             TrangThai: 1,
-            LoaiNhaDat_id
+            LoaiNhaDat_id,
+            NhanVien_id
         });
 
         // Lưu ảnh vào bảng HinhAnhNhaDat
@@ -121,7 +135,7 @@ exports.addNhaDat = async (req, res) => {
 exports.updateNhaDat = async (req, res) => {
     try {
         const { id } = req.params;
-        const { MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich, TrangThai } = req.body;
+        const { MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich, TrangThai, NhanVien_id } = req.body;
 
         const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich];
         if (validateFieldsNoSpecialChars(fieldsToCheck)) {
@@ -393,3 +407,44 @@ exports.getRelatedNhaDat = async (req, res) => {
         });
     }
 };
+
+exports.assignNhaDatToNhanVien = async (req, res) => {
+    try {
+        const { id } = req.params;//id nha dat
+        const { NhanVien_id } = req.body;
+        const nhaDat = await NhaDat.findByPk(id, {
+            include: [{ model: NhanVien, include: [User] }],
+        });
+
+        if (!nhaDat) {
+            return res.status(404).json({ error: "Không tìm thấy nhà đất" });
+        }
+
+        // Kiểm tra nhân viên tồn tại không
+        const nhanVien = await NhanVien.findByPk(NhanVien_id);
+        if (!nhanVien) {
+            return res.status(404).json({ error: "Không tìm thấy nhân viên" });
+        }
+
+        nhaDat.NhanVien_id = NhanVien_id;
+        await nhaDat.save();
+
+
+        // Tải lại nhà đất với thông tin nhân viên để trả về
+        const updatedNhaDat = await NhaDat.findByPk(id, {
+            include: [
+                { model: NhanVien, include: [User] },
+                { model: HinhAnhNhaDat, as: 'hinhAnh' } // thêm cái này
+            ],
+        });
+
+
+        return res.status(200).json({
+            message: "Giao nhà đất cho nhân viên thành công",
+            data: updatedNhaDat,
+        });
+    } catch (error) {
+        console.error("Lỗi khi giao nhà đất:", error);
+        return res.status(500).json({ error: "Lỗi máy chủ" });
+    }
+}

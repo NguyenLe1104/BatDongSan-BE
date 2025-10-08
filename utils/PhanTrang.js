@@ -1,14 +1,14 @@
 const paginate = (model, include = []) => async (req, res, next) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
-    const offset = (page - 1) * limit;
+    const page = parseInt(req.query.page) || 1; // số trang
+    const limit = parseInt(req.query.limit) || 5; // giới hạn mỗi trang
+    const offset = (page - 1) * limit; // vị trí bắt đầu lấy dữ liệu
 
     try {
         const result = await model.findAndCountAll({
             limit,
             offset,
             include,
-            distinct: true, //dem sô ban ghi
+            distinct: true, //đếm sô ban ghi
         });
 
         res.paginateResult = {

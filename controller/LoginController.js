@@ -153,10 +153,9 @@ exports.loginGoogle = async (req, res) => {
 
         // Kiểm tra user đã tồn tại chưa
         let user = await User.findOne({ where: { username: email } });
-        // hass pass de password ko null
-        const hashPass = await bcrypt.hash("google_oauth_user", 10);
         if (!user) {
-            // Nếu chưa có → tạo mới (giống addUser nhưng không cần password)
+            // Nếu chưa có → tạo mới
+            const hashPass = await bcrypt.hash("google_oauth_user", 10);
             user = await User.create({
                 username: email,
                 password: hashPass,
@@ -175,14 +174,14 @@ exports.loginGoogle = async (req, res) => {
             });
 
             // Tạo KhachHang
-            const existingKH = await KhachHang.findOne({ where: { User_id: user.id } });
-            if (!existingKH) {
-                await KhachHang.create({
-                    User_id: user.id,
-                    MaKH: `KH${user.id.toString().padStart(3, '0')}`
-                });
-            }
+            await KhachHang.findOrCreate({
+                where: { User_id: user.id },
+                defaults: { MaKH: `KH${user.id.toString().padStart(3, '0')}` }
+            });
         }
+
+
+
 
         // Lấy roles của user
         const userRoles = await UserVaiTro.findAll({
@@ -211,7 +210,15 @@ exports.loginGoogle = async (req, res) => {
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 ngày
             revoked: false
         });
-
+        const userTokens = await RefreshToken.findAll({
+            where: { userId: user.id },
+            order: [['createdAt', 'DESC']]
+        });
+        if (userTokens.length > MAX_TOKENS) {
+            const tokensToDelete = userTokens.slice(MAX_TOKENS); // cắt các token cũ nhất
+            const idsToDelete = tokensToDelete.map(t => t.id); // lấy id các token cần xóa
+            await RefreshToken.destroy({ where: { id: idsToDelete } });
+        }
         res.json({
             message: "Đăng nhập Google thành công!",
             accessToken,

@@ -77,6 +77,9 @@ Danhmucyeuthich.belongsTo(NhaDat, { foreignKey: "NhaDatId", as: "nhaDatYeuThich"
 User.hasMany(RefreshToken, { foreignKey: "userId" });
 RefreshToken.belongsTo(User, { foreignKey: "userId" });
 
+// Quan hệ 1-n: NhanVien - NhaDat
+NhanVien.hasMany(NhaDat, { foreignKey: "NhanVien_id" });
+NhaDat.belongsTo(NhanVien, { foreignKey: "NhanVien_id" });
 module.exports = {
     User, KhachHang, NhanVien, NhaDat, VaiTro, LoaiNhaDat,
     UserVaiTro, ThongTinDatBan, HopDong, LichHen,

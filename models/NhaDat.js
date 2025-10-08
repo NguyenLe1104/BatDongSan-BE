@@ -22,6 +22,7 @@ const NhaDat = sequelize.define("NhaDat", {
     Duong: DataTypes.STRING(30),
     SoNha: DataTypes.STRING(6),
 
+
     MoTa: {
         type: DataTypes.TEXT,
     },
@@ -40,6 +41,11 @@ const NhaDat = sequelize.define("NhaDat", {
     TrangThai: {
         type: DataTypes.INTEGER,
         allowNull: false,
+    },
+    NhanVien_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+
     }
 }, {
     tableName: "NhaDat",
