@@ -55,7 +55,7 @@ const taoBaiViet = async (req, res) => {
 
 const layBaiVietDaDuyet = async (req, res) => {
     try {
-        const { page = 1, limit = 8 } = req.query;
+        const { page = 1, limit = 6 } = req.query;
         const offset = (page - 1) * limit;
 
         const result = await BaiViet.findAndCountAll({

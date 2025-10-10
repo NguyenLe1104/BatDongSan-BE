@@ -5,8 +5,6 @@ const NhaDat = require("../models/NhaDat");
 const VaiTro = require("../models/VaiTro");
 const LoaiNhaDat = require("../models/LoaiNhaDat");
 const UserVaiTro = require("../models/User_VaiTro");
-const ThongTinDatBan = require("../models/ThongTinDatBan");
-const HopDong = require("../models/HopDong");
 const LichHen = require("../models/LichHen");
 const HinhAnhNhaDat = require("../models/HinhAnhNhaDat");
 const BaiViet = require("../models/BaiViet");
@@ -25,18 +23,6 @@ NhanVien.belongsTo(User, { foreignKey: "User_id" });
 NhaDat.belongsTo(LoaiNhaDat, { foreignKey: "LoaiNhaDat_id" });
 LoaiNhaDat.hasMany(NhaDat, { foreignKey: "LoaiNhaDat_id" });
 
-
-// Quan hệ 1-n: ThongTinDatBan - User
-ThongTinDatBan.belongsTo(User, { foreignKey: "User_id" });
-User.hasMany(ThongTinDatBan, { foreignKey: "User_id" });
-
-// Quan hệ 1-n: HopDong - NhaDat
-HopDong.belongsTo(NhaDat, { foreignKey: "NhaDat_id" });
-NhaDat.hasMany(HopDong, { foreignKey: "NhaDat_id" });
-
-// Quan hệ 1-n: HopDong - KhachHang
-HopDong.belongsTo(KhachHang, { foreignKey: "KhachHang_id" });
-KhachHang.hasMany(HopDong, { foreignKey: "KhachHang_id" });
 
 // Quan hệ 1-n: LichHen - NhaDat
 LichHen.belongsTo(NhaDat, { foreignKey: "NhaDat_id" });
@@ -82,7 +68,7 @@ NhanVien.hasMany(NhaDat, { foreignKey: "NhanVien_id" });
 NhaDat.belongsTo(NhanVien, { foreignKey: "NhanVien_id" });
 module.exports = {
     User, KhachHang, NhanVien, NhaDat, VaiTro, LoaiNhaDat,
-    UserVaiTro, ThongTinDatBan, HopDong, LichHen,
+    UserVaiTro, LichHen,
     BaiViet, HinhAnhBaiViet,
     HinhAnhNhaDat,
     Danhmucyeuthich
