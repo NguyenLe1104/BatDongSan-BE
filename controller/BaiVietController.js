@@ -74,7 +74,8 @@ const layBaiVietDaDuyet = async (req, res) => {
             ],
             limit: parseInt(limit),
             offset: parseInt(offset),
-            order: [['ngayDang', 'DESC']],
+            order: [["ngayDang", "DESC"]],
+            distinct: true, // tránh đếm dư bản ghi
         });
 
         res.json({
@@ -88,6 +89,7 @@ const layBaiVietDaDuyet = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi lấy danh sách bài viết" });
     }
 };
+
 
 const layBaiChoDuyet = async (req, res) => {
     try {

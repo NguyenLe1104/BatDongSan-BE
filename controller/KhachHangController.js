@@ -8,7 +8,8 @@ exports.getAllKhachHang = async (req, res) => {
     try {
         const khachHang = await KhachHang.findAll({
             include: [{
-                model: User
+                model: User,
+                where: { TrangThai: 1 }
             }]
         });
         res.json(khachHang);

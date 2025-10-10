@@ -7,7 +7,8 @@ exports.getAllNhanVien = async (req, res) => {
     try {
         const nhanVien = await NhanVien.findAll({
             include: [{
-                model: User
+                model: User,
+                where: { TrangThai: 1 }
             }]
         });
         res.json(nhanVien);

@@ -16,7 +16,7 @@ const RefreshToken = sequelize.define("RefreshToken", {
         allowNull: false,
     },
     revoked: {
-        type: DataTypes.BOOLEAN,
+        type: DataTypes.BOOLEAN,//Đánh dấu token bị thu hồi hay chưa
     }
 }, {
     tableName: "RefreshToken",

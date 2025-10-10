@@ -8,6 +8,8 @@ const LoaiNhaDat = require("../models/LoaiNhaDat");
 const HinhAnhNhaDat = require("../models/HinhAnhNhaDat")
 const NhanVien = require("../models/NhanVien")
 const User = require("../models/User")
+const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
+
 router.get("/search", nhaDatController.searchNhaDat);
 router.get(
     "/",
@@ -29,7 +31,7 @@ router.get(
     nhaDatController.getAllNhaDat
 );
 
-router.put("/:id/assign", nhaDatController.assignNhaDatToNhanVien);
+router.put("/:id/assign", verifyToken, checkRole(["ADMIN"]), nhaDatController.assignNhaDatToNhanVien);
 
 router.get("/:id", nhaDatController.getNhaDatById);
 router.post("/addNhaDat", uploadMultiple, nhaDatController.addNhaDat);

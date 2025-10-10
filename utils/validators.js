@@ -1,5 +1,5 @@
 const containsSpecialChars = (text) => {
-    const specialCharRegex = /[!@#$%^&*(){}|<>]/;
+    const specialCharRegex = /[!@#$%^&(){}|<>]/;
     return specialCharRegex.test(text);
 };
 

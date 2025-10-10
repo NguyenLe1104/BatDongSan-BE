@@ -77,7 +77,7 @@ exports.addNhaDat = async (req, res) => {
         if (!MaNhaDat || !TenNhaDat) {
             return res.status(400).json({ error: "Thiếu thông tin bắt buộc" });
         }
-        const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich];
+        const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, Huong, GiaBan, DienTich];
         if (validateFieldsNoSpecialChars(fieldsToCheck)) {
             return res.status(400).json({ error: "Thông tin có chứa ký tự đặc biệt. Vui lòng thử lại!" });
         }
@@ -137,7 +137,7 @@ exports.updateNhaDat = async (req, res) => {
         const { id } = req.params;
         const { MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich, TrangThai, NhanVien_id } = req.body;
 
-        const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, MoTa, Huong, GiaBan, DienTich];
+        const fieldsToCheck = [MaNhaDat, TenNhaDat, ThanhPho, Quan, Phuong, Duong, SoNha, Huong, GiaBan, DienTich];
         if (validateFieldsNoSpecialChars(fieldsToCheck)) {
             return res.status(400).json({ error: "Thông tin có chứa ký tự đặc biệt. Vui lòng thử lại!" });
         }
